@@ -3,13 +3,13 @@ use std::io::{Read, Seek, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, ensure, Error, Result};
-use filecoin_proofs_v1::constants::{
+use filecoin_proofs::constants::{
     SectorShape2KiB, SectorShape32GiB, SectorShape512MiB, SectorShape64GiB, SectorShape8MiB,
 };
-use filecoin_proofs_v1::storage_proofs::hasher::Hasher;
-use filecoin_proofs_v1::types::MerkleTreeTrait;
-use filecoin_proofs_v1::types::VanillaSealProof as RawVanillaSealProof;
-use filecoin_proofs_v1::{with_shape, Labels as RawLabels};
+use filecoin_proofs::storage_proofs::hasher::Hasher;
+use filecoin_proofs::types::MerkleTreeTrait;
+use filecoin_proofs::types::VanillaSealProof as RawVanillaSealProof;
+use filecoin_proofs::{with_shape, Labels as RawLabels};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -22,8 +22,8 @@ use crate::{
 pub struct SealPreCommitPhase1Output {
     pub registered_proof: RegisteredSealProof,
     pub labels: Labels,
-    pub config: filecoin_proofs_v1::StoreConfig,
-    pub comm_d: filecoin_proofs_v1::Commitment,
+    pub config: filecoin_proofs::StoreConfig,
+    pub comm_d: filecoin_proofs::Commitment,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -143,7 +143,7 @@ pub struct SealCommitPhase1Output {
     pub vanilla_proofs: VanillaSealProof,
     pub comm_r: Commitment,
     pub comm_d: Commitment,
-    pub replica_id: <filecoin_proofs_v1::constants::DefaultTreeHasher as Hasher>::Domain,
+    pub replica_id: <filecoin_proofs::constants::DefaultTreeHasher as Hasher>::Domain,
     pub seed: Ticket,
     pub ticket: Ticket,
 }
@@ -270,7 +270,7 @@ pub struct SealCommitPhase2Output {
 }
 
 pub fn clear_cache(sector_size: u64, cache_path: &Path) -> Result<()> {
-    use filecoin_proofs_v1::clear_cache;
+    use filecoin_proofs::clear_cache;
 
     with_shape!(sector_size, clear_cache, cache_path)
 }
@@ -321,7 +321,7 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
 ) -> Result<SealPreCommitPhase1Output> {
     let config = registered_proof.as_v1_config();
 
-    let output = filecoin_proofs_v1::seal_pre_commit_phase1::<_, _, _, Tree>(
+    let output = filecoin_proofs::seal_pre_commit_phase1::<_, _, _, Tree>(
         config,
         cache_path,
         in_path,
@@ -332,7 +332,7 @@ fn seal_pre_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
         piece_infos,
     )?;
 
-    let filecoin_proofs_v1::types::SealPreCommitPhase1Output::<Tree> {
+    let filecoin_proofs::types::SealPreCommitPhase1Output::<Tree> {
         labels,
         config,
         comm_d,
@@ -382,26 +382,26 @@ fn seal_pre_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     } = phase1_output;
 
     let seal_pre_commit_phase1_output =
-        filecoin_proofs_v1::types::SealPreCommitPhase1Output::<Tree> {
+        filecoin_proofs::types::SealPreCommitPhase1Output::<Tree> {
             labels: labels.try_into()?,
             config,
             comm_d,
         };
 
-    filecoin_proofs_v1::validate_cache_for_precommit_phase2::<_, _, Tree>(
+    filecoin_proofs::validate_cache_for_precommit_phase2::<_, _, Tree>(
         &cache_path,
         &out_path,
         &seal_pre_commit_phase1_output,
     )?;
 
-    let output = filecoin_proofs_v1::seal_pre_commit_phase2::<_, _, Tree>(
+    let output = filecoin_proofs::seal_pre_commit_phase2::<_, _, Tree>(
         registered_proof.as_v1_config(),
         seal_pre_commit_phase1_output,
         cache_path,
         out_path,
     )?;
 
-    let filecoin_proofs_v1::types::SealPreCommitOutput { comm_d, comm_r } = output;
+    let filecoin_proofs::types::SealPreCommitOutput { comm_d, comm_r } = output;
 
     Ok(SealPreCommitPhase2Output {
         registered_proof,
@@ -414,7 +414,7 @@ pub fn compute_comm_d(
     registered_proof: RegisteredSealProof,
     piece_infos: &[PieceInfo],
 ) -> Result<Commitment> {
-    filecoin_proofs_v1::compute_comm_d(registered_proof.sector_size(), piece_infos)
+    filecoin_proofs::compute_comm_d(registered_proof.sector_size(), piece_infos)
 }
 
 pub fn seal_commit_phase1<T: AsRef<Path>>(
@@ -463,11 +463,11 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
     } = pre_commit;
 
     let config = registered_proof.as_v1_config();
-    let pc = filecoin_proofs_v1::types::SealPreCommitOutput { comm_r, comm_d };
+    let pc = filecoin_proofs::types::SealPreCommitOutput { comm_r, comm_d };
 
-    filecoin_proofs_v1::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
+    filecoin_proofs::validate_cache_for_commit::<_, _, Tree>(&cache_path, &replica_path)?;
 
-    let output = filecoin_proofs_v1::seal_commit_phase1::<_, Tree>(
+    let output = filecoin_proofs::seal_commit_phase1::<_, Tree>(
         config,
         cache_path,
         replica_path,
@@ -479,7 +479,7 @@ fn seal_commit_phase1_inner<Tree: 'static + MerkleTreeTrait>(
         piece_infos,
     )?;
 
-    let filecoin_proofs_v1::types::SealCommitPhase1Output::<Tree> {
+    let filecoin_proofs::types::SealCommitPhase1Output::<Tree> {
         vanilla_proofs,
         comm_r,
         comm_d,
@@ -537,7 +537,7 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
     let config = registered_proof.as_v1_config();
     let replica_id: bellperson::bls::Fr = replica_id.into();
 
-    let co = filecoin_proofs_v1::types::SealCommitPhase1Output {
+    let co = filecoin_proofs::types::SealCommitPhase1Output {
         vanilla_proofs: vanilla_proofs.try_into()?,
         comm_r,
         comm_d,
@@ -546,7 +546,7 @@ fn seal_commit_phase2_inner<Tree: 'static + MerkleTreeTrait>(
         ticket,
     };
 
-    let output = filecoin_proofs_v1::seal_commit_phase2::<Tree>(config, co, prover_id, sector_id)?;
+    let output = filecoin_proofs::seal_commit_phase2::<Tree>(config, co, prover_id, sector_id)?;
 
     Ok(SealCommitPhase2Output {
         proof: output.proof,
@@ -570,71 +570,71 @@ pub fn fauxrep<R: AsRef<Path>, S: AsRef<Path>>(
     //
     // Note also that not all of these sector sizes are production, so some could be pruned.
     match sector_size {
-        filecoin_proofs_v1::constants::SECTOR_SIZE_2_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_2_KIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape2KiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_4_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape4KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_4_KIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape4KiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape16KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_16_KIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape16KiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_KIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape32KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_32_KIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape32KiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_8_MIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape8MiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_8_MIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape8MiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_MIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape16MiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_16_MIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape16MiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_512_MIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape512MiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_512_MIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape512MiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_1_GIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape1GiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_1_GIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape1GiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape32GiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_32_GIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape32GiB>(
                 config,
                 cache_path,
                 replica_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_64_GIB => {
-            filecoin_proofs_v1::fauxrep::<_, _, filecoin_proofs_v1::constants::SectorShape64GiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_64_GIB => {
+            filecoin_proofs::fauxrep::<_, _, filecoin_proofs::constants::SectorShape64GiB>(
                 config,
                 cache_path,
                 replica_path,
@@ -660,62 +660,62 @@ pub fn fauxrep2<R: AsRef<Path>, S: AsRef<Path>>(
     //
     // Note also that not all of these sector sizes are production, so some could be pruned.
     match sector_size {
-        filecoin_proofs_v1::constants::SECTOR_SIZE_2_KIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape2KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_2_KIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape2KiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_4_KIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape4KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_4_KIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape4KiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_KIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape16KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_16_KIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape16KiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_KIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape32KiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_32_KIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape32KiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_8_MIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape8MiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_8_MIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape8MiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_MIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape16MiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_16_MIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape16MiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_512_MIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape512MiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_512_MIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape512MiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_1_GIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape1GiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_1_GIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape1GiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape32GiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_32_GIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape32GiB>(
                 cache_path,
                 existing_p_aux_path,
             )
         }
-        filecoin_proofs_v1::constants::SECTOR_SIZE_64_GIB => {
-            filecoin_proofs_v1::fauxrep2::<_, _, filecoin_proofs_v1::constants::SectorShape64GiB>(
+        filecoin_proofs::constants::SECTOR_SIZE_64_GIB => {
+            filecoin_proofs::fauxrep2::<_, _, filecoin_proofs::constants::SectorShape64GiB>(
                 cache_path,
                 existing_p_aux_path,
             )
@@ -735,7 +735,7 @@ pub fn verify_seal(
     proof_vec: &[u8],
 ) -> Result<bool> {
     let config = registered_proof.as_v1_config();
-    use filecoin_proofs_v1::verify_seal;
+    use filecoin_proofs::verify_seal;
 
     with_shape!(
         u64::from(registered_proof.sector_size()),
@@ -762,7 +762,7 @@ pub fn verify_batch_seal(
     proof_vecs: &[&[u8]],
 ) -> Result<bool> {
     let config = registered_proof.as_v1_config();
-    use filecoin_proofs_v1::verify_batch_seal;
+    use filecoin_proofs::verify_batch_seal;
 
     with_shape!(
         u64::from(registered_proof.sector_size()),
@@ -825,7 +825,7 @@ fn get_unsealed_range_inner<Tree: 'static + MerkleTreeTrait>(
 ) -> Result<UnpaddedBytesAmount> {
     let config = registered_proof.as_v1_config();
 
-    filecoin_proofs_v1::get_unsealed_range::<_, Tree>(
+    filecoin_proofs::get_unsealed_range::<_, Tree>(
         config,
         cache_path,
         sealed_path,
@@ -863,11 +863,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
     //
     // Note also that not all of these sector sizes are production, so some could be pruned.
     match sector_size {
-        filecoin_proofs_v1::constants::SECTOR_SIZE_2_KIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_2_KIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape2KiB,
+            filecoin_proofs::constants::SectorShape2KiB,
         >(
             config,
             cache_path,
@@ -880,11 +880,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_4_KIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_4_KIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape4KiB,
+            filecoin_proofs::constants::SectorShape4KiB,
         >(
             config,
             cache_path,
@@ -897,11 +897,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_KIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_16_KIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape16KiB,
+            filecoin_proofs::constants::SectorShape16KiB,
         >(
             config,
             cache_path,
@@ -914,11 +914,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_KIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_32_KIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape32KiB,
+            filecoin_proofs::constants::SectorShape32KiB,
         >(
             config,
             cache_path,
@@ -931,11 +931,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_8_MIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_8_MIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape8MiB,
+            filecoin_proofs::constants::SectorShape8MiB,
         >(
             config,
             cache_path,
@@ -948,11 +948,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_16_MIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_16_MIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape16MiB,
+            filecoin_proofs::constants::SectorShape16MiB,
         >(
             config,
             cache_path,
@@ -965,11 +965,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_512_MIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_512_MIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape512MiB,
+            filecoin_proofs::constants::SectorShape512MiB,
         >(
             config,
             cache_path,
@@ -982,11 +982,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_1_GIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_1_GIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape1GiB,
+            filecoin_proofs::constants::SectorShape1GiB,
         >(
             config,
             cache_path,
@@ -999,11 +999,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_32_GIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_32_GIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape32GiB,
+            filecoin_proofs::constants::SectorShape32GiB,
         >(
             config,
             cache_path,
@@ -1016,11 +1016,11 @@ pub fn unseal_range<T: Into<PathBuf> + AsRef<Path>, R: Read, W: Write>(
             offset,
             num_bytes,
         ),
-        filecoin_proofs_v1::constants::SECTOR_SIZE_64_GIB => filecoin_proofs_v1::unseal_range::<
+        filecoin_proofs::constants::SECTOR_SIZE_64_GIB => filecoin_proofs::unseal_range::<
             _,
             _,
             _,
-            filecoin_proofs_v1::constants::SectorShape64GiB,
+            filecoin_proofs::constants::SectorShape64GiB,
         >(
             config,
             cache_path,
@@ -1047,7 +1047,7 @@ pub fn generate_piece_commitment<T: Read>(
         StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
         | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
         | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
-            filecoin_proofs_v1::generate_piece_commitment(source, piece_size)
+            filecoin_proofs::generate_piece_commitment(source, piece_size)
         }
     }
 }
@@ -1068,7 +1068,7 @@ where
         StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
         | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
         | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
-            filecoin_proofs_v1::add_piece(source, target, piece_size, piece_lengths)
+            filecoin_proofs::add_piece(source, target, piece_size, piece_lengths)
         }
     }
 }
@@ -1088,7 +1088,7 @@ where
         StackedDrg2KiBV1 | StackedDrg8MiBV1 | StackedDrg512MiBV1 | StackedDrg32GiBV1
         | StackedDrg64GiBV1 | StackedDrg2KiBV1_1 | StackedDrg8MiBV1_1 | StackedDrg512MiBV1_1
         | StackedDrg32GiBV1_1 | StackedDrg64GiBV1_1 => {
-            filecoin_proofs_v1::write_and_preprocess(source, target, piece_size)
+            filecoin_proofs::write_and_preprocess(source, target, piece_size)
         }
     }
 }

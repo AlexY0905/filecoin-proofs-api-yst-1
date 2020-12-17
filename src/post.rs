@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
 use anyhow::{ensure, Result};
-use filecoin_proofs_v1::types::MerkleTreeTrait;
-use filecoin_proofs_v1::with_shape;
+use filecoin_proofs::types::MerkleTreeTrait;
+use filecoin_proofs::with_shape;
 
 use crate::types::VanillaProofBytes;
 use crate::{
@@ -37,7 +37,7 @@ fn generate_winning_post_sector_challenge_inner<Tree: 'static + MerkleTreeTrait>
     sector_set_len: u64,
     prover_id: ProverId,
 ) -> Result<Vec<u64>> {
-    filecoin_proofs_v1::generate_winning_post_sector_challenge::<Tree>(
+    filecoin_proofs::generate_winning_post_sector_challenge::<Tree>(
         &registered_proof_v1.as_v1_config(),
         randomness,
         sector_set_len,
@@ -69,7 +69,7 @@ fn generate_fallback_sector_challenges_inner<Tree: 'static + MerkleTreeTrait>(
     pub_sectors: &[SectorId],
     prover_id: ProverId,
 ) -> Result<BTreeMap<SectorId, Vec<u64>>> {
-    filecoin_proofs_v1::generate_fallback_sector_challenges::<Tree>(
+    filecoin_proofs::generate_fallback_sector_challenges::<Tree>(
         &registered_post_proof_type.as_v1_config(),
         randomness,
         pub_sectors,
@@ -113,14 +113,14 @@ fn generate_single_vanilla_proof_inner<Tree: 'static + MerkleTreeTrait>(
         "can only generate the same kind of PoSt"
     );
 
-    let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::<Tree>::new(
+    let info_v1 = filecoin_proofs::PrivateReplicaInfo::<Tree>::new(
         replica_path.clone(),
         *comm_r,
         cache_dir.into(),
     )?;
 
     let vanilla_proof: FallbackPoStSectorProof<Tree> =
-        filecoin_proofs_v1::generate_single_vanilla_proof::<Tree>(
+        filecoin_proofs::generate_single_vanilla_proof::<Tree>(
             &registered_post_proof_type.as_v1_config(),
             sector_id,
             &info_v1,
@@ -167,7 +167,7 @@ fn generate_winning_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
         })
         .collect::<Result<_>>()?;
 
-    let posts_v1 = filecoin_proofs_v1::generate_winning_post_with_vanilla::<Tree>(
+    let posts_v1 = filecoin_proofs::generate_winning_post_with_vanilla::<Tree>(
         &registered_post_proof_type.as_v1_config(),
         randomness,
         prover_id,
@@ -225,7 +225,7 @@ fn generate_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
             registered_proof == &registered_proof_v1,
             "can only generate the same kind of PoSt"
         );
-        let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
+        let info_v1 = filecoin_proofs::PrivateReplicaInfo::new(
             replica_path.clone(),
             *comm_r,
             cache_dir.into(),
@@ -235,7 +235,7 @@ fn generate_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
     }
 
     ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
-    let posts_v1 = filecoin_proofs_v1::generate_winning_post::<Tree>(
+    let posts_v1 = filecoin_proofs::generate_winning_post::<Tree>(
         &registered_proof_v1.as_v1_config(),
         randomness,
         &replicas_v1,
@@ -295,11 +295,11 @@ fn verify_winning_post_inner<Tree: 'static + MerkleTreeTrait>(
             "can only generate the same kind of PoSt"
         );
 
-        let info_v1 = filecoin_proofs_v1::PublicReplicaInfo::new(*comm_r)?;
+        let info_v1 = filecoin_proofs::PublicReplicaInfo::new(*comm_r)?;
         replicas_v1.push((*id, info_v1));
     }
 
-    let valid_v1 = filecoin_proofs_v1::verify_winning_post::<Tree>(
+    let valid_v1 = filecoin_proofs::verify_winning_post::<Tree>(
         &registered_proof_v1.as_v1_config(),
         randomness,
         &replicas_v1,
@@ -347,7 +347,7 @@ fn generate_window_post_with_vanilla_inner<Tree: 'static + MerkleTreeTrait>(
         })
         .collect::<Result<_>>()?;
 
-    let posts_v1 = filecoin_proofs_v1::generate_window_post_with_vanilla::<Tree>(
+    let posts_v1 = filecoin_proofs::generate_window_post_with_vanilla::<Tree>(
         &registered_post_proof_type.as_v1_config(),
         randomness,
         prover_id,
@@ -405,7 +405,7 @@ fn generate_window_post_inner<Tree: 'static + MerkleTreeTrait>(
             registered_proof == &registered_proof_v1,
             "can only generate the same kind of PoSt"
         );
-        let info_v1 = filecoin_proofs_v1::PrivateReplicaInfo::new(
+        let info_v1 = filecoin_proofs::PrivateReplicaInfo::new(
             replica_path.clone(),
             *comm_r,
             cache_dir.into(),
@@ -415,7 +415,7 @@ fn generate_window_post_inner<Tree: 'static + MerkleTreeTrait>(
     }
 
     ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
-    let posts_v1 = filecoin_proofs_v1::generate_window_post::<Tree>(
+    let posts_v1 = filecoin_proofs::generate_window_post::<Tree>(
         &registered_proof_v1.as_v1_config(),
         randomness,
         &replicas_v1,
@@ -478,11 +478,11 @@ fn verify_window_post_inner<Tree: 'static + MerkleTreeTrait>(
             "can only generate the same kind of PoSt"
         );
 
-        let info_v1 = filecoin_proofs_v1::PublicReplicaInfo::new(*comm_r)?;
+        let info_v1 = filecoin_proofs::PublicReplicaInfo::new(*comm_r)?;
         replicas_v1.insert(*id, info_v1);
     }
 
-    let valid_v1 = filecoin_proofs_v1::verify_window_post::<Tree>(
+    let valid_v1 = filecoin_proofs::verify_window_post::<Tree>(
         &registered_proof_v1.as_v1_config(),
         randomness,
         &replicas_v1,

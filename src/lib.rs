@@ -12,12 +12,12 @@ mod types;
 pub use crate::registry::{RegisteredPoStProof, RegisteredSealProof, Version};
 pub use crate::types::{PrivateReplicaInfo, PublicReplicaInfo};
 
-pub use filecoin_proofs_v1::storage_proofs::error::Error as StorageProofsError;
-pub use filecoin_proofs_v1::storage_proofs::fr32;
-pub use filecoin_proofs_v1::storage_proofs::post::election::Candidate;
-pub use filecoin_proofs_v1::storage_proofs::sector::{OrderedSectorSet, SectorId};
-pub use filecoin_proofs_v1::types::{
+pub use filecoin_proofs::storage_proofs::error::Error as StorageProofsError;
+pub use filecoin_proofs::storage_proofs::fr32;
+pub use filecoin_proofs::storage_proofs::post::election::Candidate;
+pub use filecoin_proofs::storage_proofs::sector::{OrderedSectorSet, SectorId};
+pub use filecoin_proofs::types::{
     ChallengeSeed, Commitment, PaddedBytesAmount, PieceInfo, PoStType, ProverId, Ticket,
     UnpaddedByteIndex, UnpaddedBytesAmount,
 };
-pub use filecoin_proofs_v1::{FallbackPoStSectorProof, SnarkProof, VanillaProof};
+pub use filecoin_proofs::{FallbackPoStSectorProof, SnarkProof, VanillaProof};

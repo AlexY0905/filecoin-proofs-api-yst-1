@@ -31,11 +31,8 @@ default-features = false
 version = "1.1.2"
 
 #yst correct
-[dependencies.filecoin-proofs]
-git = "https://github.com/AlexY0905/filecoin-proofs-yst-1.git"
-rev = "d42e967"
 
-[dependencies.filecoin-proofs-v1]
+[dependencies.filecoin-proofs]
 version = "5.4.0"
 features = ["gpu"]
 default-features = false
@@ -47,6 +44,6 @@ rev = "d42e967"
 version = "1.0.104"
 
 [features]
-blst = ["filecoin-proofs-v1/blst", "bellperson/blst"]
+blst = ["filecoin-proofs/blst", "bellperson/blst"]
 default = ["pairing"]
-pairing = ["filecoin-proofs-v1/pairing", "bellperson/pairing"]
+pairing = ["filecoin-proofs/pairing", "bellperson/pairing"]
