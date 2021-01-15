@@ -19,6 +19,7 @@ description = "API to interact with the proofs system in Filecoin"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/AlexY0905/filecoin-proofs-api-yst-1.git"
+
 [dependencies.anyhow]
 version = "1.0.26"
 
@@ -37,7 +38,7 @@ version = "5.4.0"
 features = ["gpu"]
 default-features = false
 git = "https://github.com/AlexY0905/filecoin-proofs-yst-1.git"
-rev = "272b2f6"
+rev = "2b8c521fda5f77c1ed2e808f26b1c468f487474e"
 
 
 [dependencies.serde]
