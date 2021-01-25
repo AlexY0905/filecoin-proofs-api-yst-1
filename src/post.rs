@@ -412,7 +412,9 @@ pub fn generate_window_post_phase_1(
         randomness,
         replicas,
         prover_id,
-        flag_no,
+        hostname,
+        postpath,
+        index,
     )
 }
 
@@ -423,7 +425,7 @@ pub fn generate_window_post_phase_2(
     postpath: String,
     index: u64,
 ) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
-    ensure!(!flag_vec.is_empty(), "[generate_window_post] no flag_vec supplied");
+    ensure!(!hostname.is_empty(), "[generate_window_post] no hostname supplied");
     ensure!(
         registered_post_proof_type_v1.typ() == PoStType::Window,
         "invalid post type provided"
@@ -433,7 +435,9 @@ pub fn generate_window_post_phase_2(
         u64::from(registered_post_proof_type_v1.sector_size()),
         generate_window_post_inner_phase_2,
         registered_post_proof_type_v1,
-        flag_vec,
+        hostname,
+        postpath,
+        index,
     )
 }
 
@@ -534,7 +538,7 @@ fn generate_window_post_inner_phase_2<Tree: 'static + MerkleTreeTrait>( // (7) 8
                                                                         postpath: String,
                                                                         index: u64,
 ) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
-    ensure!(!flag_vec.is_empty(), "missing flag_vec");
+    ensure!(!hostname.is_empty(), "missing hostname");
     let posts_v1 = filecoin_proofs::generate_window_post_phase_2::<Tree>( // (7) 9
                                                                           &registered_proof_v1.as_v1_config(),
                                                                           hostname,
