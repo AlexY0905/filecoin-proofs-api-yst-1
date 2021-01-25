@@ -1,8 +1,7 @@
-use std::collections::BTreeMap;
-
 use anyhow::{ensure, Result};
 use filecoin_proofs::types::MerkleTreeTrait;
 use filecoin_proofs::with_shape;
+use std::collections::BTreeMap;
 
 use crate::{
     ChallengeSeed, FallbackPoStSectorProof, PoStType, PrivateReplicaInfo, ProverId,
@@ -393,6 +392,7 @@ pub fn generate_window_post_phase_1(
     prover_id: ProverId,
     hostname: String,
     postpath: String,
+    index: u64,
 ) -> Result<()> {
     ensure!(!replicas.is_empty(), "[generate_window_post] no replicas supplied");
     let registered_post_proof_type_v1 = replicas
@@ -421,6 +421,7 @@ pub fn generate_window_post_phase_2(
     registered_post_proof_type_v1: RegisteredPoStProof,
     hostname: &Vec<String>,
     postpath: String,
+    index: u64,
 ) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
     ensure!(!flag_vec.is_empty(), "[generate_window_post] no flag_vec supplied");
     ensure!(
@@ -488,6 +489,7 @@ fn generate_window_post_inner_phase_1<Tree: 'static + MerkleTreeTrait>(
     prover_id: ProverId,
     hostname: String,
     postpath: String,
+    index: u64,
 ) -> Result<()> {
     let mut replicas_v1 = BTreeMap::new();
 
@@ -520,6 +522,7 @@ fn generate_window_post_inner_phase_1<Tree: 'static + MerkleTreeTrait>(
         prover_id,  // miner address
         hostname,
         postpath,
+        index,
     )?;
 
     Ok(result)
@@ -529,12 +532,14 @@ fn generate_window_post_inner_phase_2<Tree: 'static + MerkleTreeTrait>( // (7) 8
                                                                         registered_proof_v1: RegisteredPoStProof,
                                                                         hostname: &Vec<String>,
                                                                         postpath: String,
+                                                                        index: u64,
 ) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>> {
     ensure!(!flag_vec.is_empty(), "missing flag_vec");
     let posts_v1 = filecoin_proofs::generate_window_post_phase_2::<Tree>( // (7) 9
                                                                           &registered_proof_v1.as_v1_config(),
                                                                           hostname,
                                                                           postpath,
+                                                                          index,
     )?;
 
     // once there are multiple versions, merge them before returning
