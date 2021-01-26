@@ -46,7 +46,7 @@ version = "5.4.0"
 features = ["gpu"]
 default-features = false
 git = "https://github.com/AlexY0905/filecoin-proofs-yst-1.git"
-rev = "1371b9a"
+rev = "b129348"
 
 
 [dependencies.serde]
