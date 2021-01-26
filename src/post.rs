@@ -517,19 +517,20 @@ fn generate_window_post_inner_phase_1<Tree: 'static + MerkleTreeTrait>(
 
         replicas_v1.insert(*id, info_v1);
     }
+    unsafe {
+        ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
+        let result = filecoin_proofs::generate_window_post_phase_1::<Tree>(
+            &registered_proof_v1.as_v1_config(),
+            randomness,
+            &replicas_v1,
+            prover_id,  // miner address
+            hostname,
+            postpath,
+            index,
+        )?;
 
-    ensure!(!replicas_v1.is_empty(), "missing v1 replicas");
-    let result = filecoin_proofs::generate_window_post_phase_1::<Tree>(
-        &registered_proof_v1.as_v1_config(),
-        randomness,
-        &replicas_v1,
-        prover_id,  // miner address
-        hostname,
-        postpath,
-        index,
-    )?;
-
-    Ok(result)
+        Ok(result)
+    }
 }
 
 fn generate_window_post_inner_phase_2<Tree: 'static + MerkleTreeTrait>( // (7) 8
