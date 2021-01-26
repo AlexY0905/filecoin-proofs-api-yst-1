@@ -22,10 +22,19 @@ repository = "https://github.com/AlexY0905/filecoin-proofs-api-yst-1.git"
 [dependencies.anyhow]
 version = "1.0.26"
 
+#[dependencies.bellperson]
+#version = "0.12"
+#features = ["gpu"]
+#default-features = false
+
 [dependencies.bellperson]
+git = "https://github.com/AlexY0905/bellperson-yst.git"
+rev = "a292370"
 version = "0.12"
 features = ["gpu"]
 default-features = false
+
+
 
 [dependencies.bincode]
 version = "1.1.2"
@@ -37,7 +46,7 @@ version = "5.4.0"
 features = ["gpu"]
 default-features = false
 git = "https://github.com/AlexY0905/filecoin-proofs-yst-1.git"
-rev = "039b1db"
+rev = "155a0d7"
 
 
 [dependencies.serde]
